@@ -383,7 +383,14 @@ class QrScanner {
             /** @type {string | undefined} */
             let result;
             try {
-                result = await QrScanner.scanImage(this.$video, this._scanRegion, this._qrEnginePromise, this.$canvas);
+                result = await QrScanner.scanImage(
+                    this.$video,
+                    this._scanRegion,
+                    this._qrEnginePromise,
+                    this.$canvas,
+                    /* fixedCanvasSize */ true,
+                    /* alsoTryWitoutScanRegion */ false,
+                );
             } catch (error) {
                 if (!this._active) return;
                 const errorMessage = error.message || error;
