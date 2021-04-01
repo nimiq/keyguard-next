@@ -212,7 +212,7 @@ class QrScanner {
     /**
      * @param {HTMLImageElement | HTMLVideoElement | string} imageOrFileOrUrl
      * @param {RectArea} [scanRegion]
-     * @param {Promise<Worker>} [givenEngine] // TODO: Or BarcodeDecoder
+     * @param {Promise<Worker>} [givenEngine] // TODO: Or BarcodeDetector
      * @param {HTMLCanvasElement} [givenCanvas]
      * @param {boolean} [fixedCanvasSize = false]
      * @param {boolean} [alsoTryWithoutScanRegion = false]
@@ -280,7 +280,7 @@ class QrScanner {
                 });
             }
             return new Promise((resolve, reject) => {
-                /** @type {any} */ // TODO: BarcodeDecoder
+                /** @type {any} */ // TODO: BarcodeDetector
                 const decoder = engine;
 
                 const timeout = window.setTimeout(() => reject('Scanner error: timeout'), 10000);
@@ -321,7 +321,7 @@ class QrScanner {
     /**
      *
      * @param {string} [workerPath]
-     * @returns {Promise<Worker>} // TODO: Or BarcodeDecoder
+     * @returns {Promise<Worker>} // TODO: Or BarcodeDetector
      */
     static async createQrEngine(workerPath = QrScanner.WORKER_PATH) {
         // @ts-ignore Cannot find name 'BarcodeDetector'
