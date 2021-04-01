@@ -10,6 +10,7 @@
 /* global Utf8Tools */
 /* global KeyStore */
 /* global BitcoinKey */
+/* global QrVideoScanner */
 
 /**
  * @callback ImportFile.resolve
@@ -48,6 +49,13 @@ class ImportFile {
         const $fileImport = (this.$importFilePage.querySelector('.file-import'));
         const fileImport = new FileImporter($fileImport, false);
 
+        /** @type {HTMLButtonElement} */
+        const $qrVideoButton = (this.$importFilePage.querySelector('.qr-video-button'));
+
+        /** @type {HTMLDivElement} */
+        this.$qrVideoScanner = (this.$importFilePage.querySelector('.qr-video-scanner'));
+        this.qrVideoScanner = new QrVideoScanner(this.$qrVideoScanner);
+
         /** @type {HTMLElement} */
         const $gotoWords = (this.$importFilePage.querySelector('#goto-words'));
         $gotoWords.addEventListener('click', () => { this.importWordsHandler.run(); });
@@ -69,6 +77,14 @@ class ImportFile {
         fileImport.on(FileImporter.Events.IMPORT, this._onFileImported.bind(this));
         this.passwordBox.on(PasswordBox.Events.SUBMIT, this._onPasswordEntered.bind(this));
 
+        this.qrVideoScanner.on(QrVideoScanner.Events.RESULT, result => {
+            this._onFileImported(result);
+            this._stopQrVideo();
+        });
+        this.qrVideoScanner.on(QrVideoScanner.Events.CANCEL, this._stopQrVideo.bind(this));
+
+        $qrVideoButton.addEventListener('click', this._startQrVideo.bind(this));
+
         if (request.enableBackArrow) {
             /** @type {HTMLElement} */
             (this.$importFilePage.querySelector('.page-header-back-button')).classList.remove('display-none');
@@ -81,7 +97,7 @@ class ImportFile {
 
     /**
      * @param {string} decoded
-     * @param {string} src
+     * @param {string} [src]
      */
     _onFileImported(decoded, src) {
         if (decoded.substr(0, 2) === '#2') {
@@ -93,7 +109,9 @@ class ImportFile {
         this._encryptedKey = Nimiq.BufferUtils.fromBase64(decoded);
 
         // Prepare next page
-        this.$loginFileImage.src = src;
+        if (src) {
+            this.$loginFileImage.src = src;
+        }
         const version = this._encryptedKey.readUint8();
         // eslint-disable-next-line no-nested-ternary
         this.passwordBox.setMinLength(this._flags.hasPin ? Key.PIN_LENGTH : version < 3 ? 10 : undefined);
@@ -105,6 +123,17 @@ class ImportFile {
         setTimeout(() => this.$unlockAccountPage.classList.add('animate'), 0);
 
         TopLevelApi.focusPasswordBox();
+    }
+
+    _startQrVideo() {
+        this.qrVideoScanner.start();
+        this.qrVideoScanner.repositionOverlay();
+        this.$qrVideoScanner.classList.add('active');
+    }
+
+    _stopQrVideo() {
+        this.$qrVideoScanner.classList.remove('active');
+        window.setTimeout(() => this.qrVideoScanner.stop(), 1000);
     }
 
     /**

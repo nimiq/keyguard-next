@@ -56,6 +56,8 @@
     "file-import-error-could-not-read": "Файл Авторизации не прочитался",
     "file-import-error-invalid": "Некорретный Файл Авторизации",
 
+    "qr-video-scanner-cancel": "Отменить",
+
     "sign-tx-heading-tx": "Подтвердите транзакцию",
     "sign-tx-heading-checkout": "Проверьте Платёж",
     "sign-tx-heading-cashlink": "Создать Cashlink",

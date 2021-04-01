@@ -56,6 +56,8 @@
     "file-import-error-could-not-read": "Неможливо прочитати файл-ключ.",
     "file-import-error-invalid": "Невірний файл-ключ.",
 
+    "qr-video-scanner-cancel": "Скасувати",
+
     "sign-tx-heading-tx": "Підтвердіть переказ",
     "sign-tx-heading-checkout": "Підтвердіть платіж",
     "sign-tx-heading-cashlink": "Створити чек",

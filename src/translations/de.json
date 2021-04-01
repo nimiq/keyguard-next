@@ -56,6 +56,8 @@
     "file-import-error-could-not-read": "Login-Datei nicht erkannt.",
     "file-import-error-invalid": "Ungültige Login‑Datei.",
 
+    "qr-video-scanner-cancel": "Abbrechen",
+
     "sign-tx-heading-tx": "Transaktion bestätigen",
     "sign-tx-heading-checkout": "Zahlung bestätigen",
     "sign-tx-heading-cashlink": "Cashlink erstellen",

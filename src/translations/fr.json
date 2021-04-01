@@ -56,6 +56,8 @@
     "file-import-error-could-not-read": "Impossible de lire le fichier de connexion.",
     "file-import-error-invalid": "Fichier de connexion invalide.",
 
+    "qr-video-scanner-cancel": "Annuler",
+
     "sign-tx-heading-tx": "Confirmer la Transaction",
     "sign-tx-heading-checkout": "Vérifier le Paiement",
     "sign-tx-heading-cashlink": "Créer un Cashlink",
