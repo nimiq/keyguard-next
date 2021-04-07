@@ -133,7 +133,7 @@ class FileImporter extends Nimiq.Observable {
     async _readQrCode(image) {
         try {
             const qrPosition = LoginFile.calculateQrPosition();
-            return await QrScanner.scanImage(image, qrPosition, null, null, true);
+            return await QrScanner.scanImage(image, qrPosition, undefined, undefined, undefined, true);
         } catch (e) {
             return null;
         }

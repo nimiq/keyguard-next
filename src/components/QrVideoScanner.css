@@ -1,0 +1,78 @@
+.qr-video-scanner {
+    position: relative;
+    overflow: hidden;
+}
+
+.qr-video-scanner video {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.qr-video-scanner .overlay {
+    position: absolute;
+}
+
+.qr-video-scanner:not(.camera-issue) .overlay {
+    animation: overlay-animation 400ms infinite alternate ease-in-out;
+}
+
+@keyframes overlay-animation {
+    from {
+        transform: scale(.98);
+    }
+    to {
+        transform: scale(1.01);
+    }
+}
+
+.qr-video-scanner .overlay svg {
+    width: 100%;
+    height: 100%;
+    stroke: var(--nimiq-gold);
+}
+
+.qr-video-scanner.camera-issue .overlay svg {
+    stroke: rgba(255, 255, 255, .4);
+}
+
+.qr-video-scanner .cancel-button {
+    background: white;
+    position: absolute;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--nimiq-blue);
+}
+
+.qr-video-scanner .cancel-button:hover,
+.qr-video-scanner .cancel-button:focus,
+.qr-video-scanner .cancel-button:active {
+    background: #EFF0F2; /* Indigo 7% */
+}
+
+.camera-access-failed {
+    color: white;
+    text-align: center;
+    font-size: 2rem;
+}
+
+.camera-access-failed-warning {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30rem;
+    max-width: 80%;
+    font-weight: bold;
+}
+
+.qr-video-scanner:not(.camera-issue) .camera-access-failed,
+.qr-video-scanner:not(.no-camera) .no-camera,
+.qr-video-scanner.no-camera .unblock-camera {
+    display: none;
+}

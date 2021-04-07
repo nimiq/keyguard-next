@@ -12,6 +12,7 @@ class2Path.set('TRANSLATIONS', 'src/translations/index.js');
 class2Path.set('CONFIG', 'src/config/config.local.js');
 class2Path.set('Nimiq', 'node_modules/@nimiq/core-web/web-offline.js');
 class2Path.set('Rpc', 'node_modules/@nimiq/rpc/dist/rpc.umd.js');
+class2Path.set('BarcodeDetector', 'src/lib/QrScanner.js');
 class2Path.delete('index');
 
 const requests = funcs.listDirectories('src/request');

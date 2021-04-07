@@ -1,3 +1,7 @@
+.page#import-file {
+    position: relative;
+}
+
 .page#import-file .page-body,
 .page#unlock-account .page-body {
     display: flex;
@@ -21,6 +25,53 @@
 
 .page#import-file .page-footer {
     align-items: center;
+}
+
+.page#import-file .qr-video-button {
+    position: absolute;
+    right: 2.5rem;
+    bottom: 2.5rem;
+    display: flex;
+
+    /* Reset Button */
+    background: none;
+    border: none;
+    outline: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    color: inherit;
+    text-align: inherit;
+    cursor: pointer;
+
+    font-size: 3.75rem;
+    opacity: 0.6;
+    transition: opacity 0.3s var(--nimiq-ease);
+}
+
+.page#import-file .qr-video-button:hover,
+.page#import-file .qr-video-button:focus {
+    opacity: 0.8;
+}
+
+.page#import-file .qr-video-scanner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 0.625rem;
+    margin: 0.75rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.7s var(--nimiq-ease);
+}
+
+.page#import-file .qr-video-scanner.active {
+    opacity: 1;
+    pointer-events: all;
 }
 
 .page#unlock-account .page-body {
@@ -163,4 +214,11 @@ a#goto-create {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+}
+
+@media (max-width: 450px) {
+    .page#import-file .qr-video-scanner {
+        margin: 0;
+        border-radius: 0;
+    }
 }

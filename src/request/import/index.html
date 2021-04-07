@@ -56,6 +56,7 @@
     <script defer src="../../lib/QrEncoder.js"></script>
     <script defer src="../../components/DownloadLoginFile.js"></script>
     <script defer src="../../components/FileImporter.js"></script>
+    <script defer src="../../components/QrVideoScanner.js"></script>
     <script defer src="../../components/FlippableHandler.js"></script>
     <script defer src="../../components/LoginFileIcon.js"></script>
     <script defer src="../../components/PasswordSetterBox.js"></script>
@@ -73,6 +74,7 @@
     <link rel="stylesheet" bundle-toplevel href="../../components/PasswordBox.css">
 
     <link rel="stylesheet" href="../../components/FileImporter.css">
+    <link rel="stylesheet" href="../../components/QrVideoScanner.css">
     <link rel="stylesheet" href="../../components/FlippableHandler.css">
     <link rel="stylesheet" href="../../components/LoginFileIcon.css">
     <link rel="stylesheet" href="../../components/RecoveryWords.css">
@@ -169,6 +171,11 @@
                         <svg class="nq-icon"><use xlink:href="../../../node_modules/@nimiq/style/nimiq-style.icons.svg#nq-caret-right-small"/></svg>
                     </a>
                 </div>
+
+                <button class="qr-video-button">
+                    <svg class="nq-icon"><use xlink:href="../../../node_modules/@nimiq/style/nimiq-style.icons.svg#nq-scan-qr-code"/></svg>
+                </button>
+                <div class="qr-video-scanner"></div>
             </div>
 
             <div id="unlock-account" class="page nq-card">

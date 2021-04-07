@@ -56,6 +56,10 @@
     "file-import-error-could-not-read": "无法读取登录文件",
     "file-import-error-invalid": "无效的登录文件",
 
+    "qr-video-scanner-cancel": "取消",
+    "qr-video-scanner-no-camera": "您的设备没有可访问的相机",
+    "qr-video-scanner-enable-camera": "打开此网站相机的使用权限以扫描QR码",
+
     "sign-tx-heading-tx": "确认交易",
     "sign-tx-heading-checkout": "验证付款",
     "sign-tx-heading-cashlink": "创建现金链接",
