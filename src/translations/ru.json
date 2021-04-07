@@ -57,6 +57,8 @@
     "file-import-error-invalid": "Некорретный Файл Авторизации",
 
     "qr-video-scanner-cancel": "Отменить",
+    "qr-video-scanner-no-camera": "Камера вашего устройства недоступна.",
+    "qr-video-scanner-enable-camera": "Разблокируйте камеру для этого сайта, чтобы сканировать QR-коды.",
 
     "sign-tx-heading-tx": "Подтвердите транзакцию",
     "sign-tx-heading-checkout": "Проверьте Платёж",

@@ -57,6 +57,8 @@
     "file-import-error-invalid": "Невірний файл-ключ.",
 
     "qr-video-scanner-cancel": "Скасувати",
+    "qr-video-scanner-no-camera": "Ваш пристрій не має доступної камери.",
+    "qr-video-scanner-enable-camera": "Розблокуйте камеру для цього веб-сайту, щоб сканувати QR-коди.",
 
     "sign-tx-heading-tx": "Підтвердіть переказ",
     "sign-tx-heading-checkout": "Підтвердіть платіж",

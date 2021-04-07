@@ -4,13 +4,23 @@
 /* global TemplateTags */
 
 class QrVideoScanner extends Nimiq.Observable {
+    // eslint-disable-next-line valid-jsdoc
     /**
      * @param {HTMLDivElement} [$el]
+     * @param {number} [reportFrequency = 7000]
+     * @param {(result: string) => boolean} [validator]
      */
-    constructor($el) {
+    constructor($el, reportFrequency = 7000, validator = /** @param {string} result */ result => !!result) {
         super();
 
+        this._reportFrequency = reportFrequency;
+        this._validator = validator;
+
         this._isRepositioningOverlay = false;
+        this._cameraRetryTimer = 0;
+        /** @type {string | undefined} */
+        this._lastResult = undefined;
+        this._lastResultTime = 0;
 
         this.$el = QrVideoScanner._createElement($el);
 
@@ -23,47 +33,55 @@ class QrVideoScanner extends Nimiq.Observable {
         /** @type {HTMLButtonElement} */
         const $cancelButton = (this.$el.querySelector('.cancel-button'));
 
-        // this.$el.addEventListener('click', () => this.copy());
         this._scanner = new QrScanner($video, result => this._onResult(result));
 
         $cancelButton.addEventListener('click', () => this.fire(QrVideoScanner.Events.CANCEL));
+
+        QrScanner.hasCamera().then(hasCamera => this.$el.classList.toggle('no-camera', !hasCamera));
     }
 
+    /**
+     * @returns {Promise<boolean>}
+     */
     async start() {
         try {
             await this._scanner.start();
-            // this.cameraAccessFailed = false;
-            // if (this._cameraRetryTimer) {
-            //     window.clearInterval(this._cameraRetryTimer);
-            //     this._cameraRetryTimer = null;
-            // }
+            this.$el.classList.remove('camera-issue');
+            if (this._cameraRetryTimer) {
+                window.clearInterval(this._cameraRetryTimer);
+                this._cameraRetryTimer = 0;
+            }
+            return true;
         } catch (error) {
-            // this.cameraAccessFailed = true;
+            this.$el.classList.add('camera-issue');
             this.fire(QrVideoScanner.Events.ERROR, typeof error === 'string' ? new Error(error) : error);
-            // if (!this._cameraRetryTimer) {
-            //     this._cameraRetryTimer = window.setInterval(() => this.start(), 3000);
-            // }
+            if (!this._cameraRetryTimer) {
+                this._cameraRetryTimer = window.setInterval(() => this.start(), 3000);
+            }
+            return false;
         }
-        // return !this.cameraAccessFailed;
     }
 
     /**
      * @param {string} result
      */
     _onResult(result) {
-        // if ((result === this._lastResult && Date.now() - this._lastResultTime < this.reportFrequency)
-        //     || (this.validate && !this.validate(result))) return;
-        // this._lastResult = result;
-        // this._lastResultTime = Date.now();
+        if (
+            (result === this._lastResult && Date.now() - this._lastResultTime < this._reportFrequency)
+            || !this._validator(result)
+        ) return;
+
+        this._lastResult = result;
+        this._lastResultTime = Date.now();
         this.fire(QrVideoScanner.Events.RESULT, result);
     }
 
     stop() {
         this._scanner.stop();
-        // if (this._cameraRetryTimer) {
-        //     window.clearInterval(this._cameraRetryTimer);
-        //     this._cameraRetryTimer = null;
-        // }
+        if (this._cameraRetryTimer) {
+            window.clearInterval(this._cameraRetryTimer);
+            this._cameraRetryTimer = 0;
+        }
     }
 
     repositionOverlay() {
@@ -89,17 +107,6 @@ class QrVideoScanner extends Nimiq.Observable {
         });
     }
 
-    // copy() {
-    //     ClipboardUtils.copy(this._text);
-
-    //     window.clearTimeout(this._copiedResetTimeout);
-    //     this.$el.classList.add('copied', 'show-tooltip');
-    //     this._copiedResetTimeout = window.setTimeout(
-    //         () => this.$el.classList.remove('copied', 'show-tooltip'),
-    //         QrVideoScanner.DISPLAY_TIME,
-    //     );
-    // }
-
     /**
      * @returns {HTMLDivElement}
      */
@@ -124,6 +131,15 @@ class QrVideoScanner extends Nimiq.Observable {
                 </svg>
             </div>
             <button class="nq-button-s inverse cancel-button" data-i18n="qr-video-scanner-cancel">Cancel</button>
+
+            <div class="camera-access-failed">
+                <div class="camera-access-failed-warning no-camera" data-i18n="qr-video-scanner-no-camera">
+                    Your device does not have an accessible camera.
+                </div>
+                <div class="camera-access-failed-warning unblock-camera" data-i18n="qr-video-scanner-enable-camera">
+                    Unblock the camera for this website to scan QR codes.
+                </div>
+            </div>
         `;
         /* eslint-enable max-len */
 

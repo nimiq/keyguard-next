@@ -57,6 +57,8 @@
     "file-import-error-invalid": "Archivo de Sesión inválido.",
 
     "qr-video-scanner-cancel": "Cancelar",
+    "qr-video-scanner-no-camera": "Su dispositivo no tiene una cámara accesible.",
+    "qr-video-scanner-enable-camera": "Desbloquee la cámara para esta página para poder escanear códigos QR.",
 
     "sign-tx-heading-tx": "Confirme Transacción",
     "sign-tx-heading-checkout": "Verificar Pago",
