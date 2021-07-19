@@ -7,6 +7,7 @@ export type ObjectType = {
 
 // Returns B if T and B have same keys. Ignores modifiers (readonly, optional)
 export type Is<T, B> = keyof T extends keyof B ? keyof B extends keyof T ? B : never : never;
+export type Transform<T, K extends keyof T, E> = Omit<T, K> & E;
 
 // Base types for Requests
 export type BasicRequest = {
@@ -27,16 +28,24 @@ export type SingleKeyResult = {
 };
 
 export type TransactionInfo = {
-    sender: Uint8Array
-    senderType: Nimiq.Account.Type
-    recipient: Uint8Array
-    value: number
-    fee: number
-    validityStartHeight: number
-    recipientType?: Nimiq.Account.Type
-    data?: Uint8Array
+    keyPath: string,
+    senderLabel?: string,
+    sender: Uint8Array,
+    senderType: Nimiq.Account.Type,
+    recipient: Uint8Array,
+    recipientType?: Nimiq.Account.Type,
+    value: number,
+    fee: number,
+    validityStartHeight: number,
+    data?: Uint8Array,
     flags?: number,
 };
+
+export enum BitcoinTransactionInputType {
+    STANDARD = 'standard',
+    HTLC_REDEEM = 'htlc-redeem',
+    HTLC_REFUND = 'htlc-refund',
+}
 
 export type BitcoinTransactionInput = {
     keyPath: string,
@@ -44,7 +53,12 @@ export type BitcoinTransactionInput = {
     outputIndex: number,
     outputScript: string,
     value: number,
-};
+} & ({
+    type?: BitcoinTransactionInputType.STANDARD,
+} | {
+    type: BitcoinTransactionInputType.HTLC_REDEEM | BitcoinTransactionInputType.HTLC_REFUND,
+    witnessScript: string,
+});
 
 export type BitcoinTransactionOutput = {
     address: string,
@@ -129,10 +143,7 @@ export type ExportResult = {
     wordsExported: boolean,
 };
 
-type SignTransactionRequestCommon = SimpleRequest & TransactionInfo & {
-    keyPath: string,
-    senderLabel?: string,
-};
+type SignTransactionRequestCommon = SimpleRequest & TransactionInfo;
 
 export type SignTransactionRequestStandard = SignTransactionRequestCommon & {
     layout?: 'standard',
@@ -179,6 +190,90 @@ export type SignBtcTransactionRequest
     = SignBtcTransactionRequestStandard
     | SignBtcTransactionRequestCheckout;
 
+export type SignSwapRequest = SimpleRequest & {
+    swapId: string,
+    fund: (
+        {type: 'NIM'}
+        & Omit<TransactionInfo,
+            | 'recipient' // Only known in second step (in swap-iframe), derived from htlcData
+            | 'recipientType' // Must be HTLC
+            | 'recipientLabel' // Not used
+            | 'data' // Only known in second step (in swap-iframe)
+            | 'flags' // Must be CONTRACT_CREATION
+        >
+        & { senderLabel: string }
+    ) | (
+        {type: 'BTC'}
+        & Transform<BitcoinTransactionInfo, 'recipientOutput', {
+            recipientOutput: Omit<BitcoinTransactionOutput,
+                | 'address' // Only known in second step (in swap-iframe), derived from htlcScript
+                | 'label' // Not used
+            >,
+            refundKeyPath: string, // To validate that we own the HTLC script's refund address
+        }>
+    ),
+    redeem: (
+        {type: 'NIM'}
+        & Omit<TransactionInfo,
+            | 'sender' // Only known in second step (in swap-iframe)
+            | 'senderType' // Must be HTLC
+            | 'senderLabel' // Not used
+            | 'recipientType' // Must by BASIC (can only redeem to signer adress)
+            | 'flags' // Must be NONE, as it cannot be CONTRACT_CREATION
+        >
+        & { recipientLabel: string }
+    ) | (
+        {type: 'BTC'}
+        & {
+            input: Omit<BitcoinTransactionInput, // Only allow one input (the HTLC UTXO)
+                | 'transactionHash' // Only known in second step (in swap-iframe)
+                | 'outputIndex' // Only known in second step (in swap-iframe)
+                | 'outputScript' // Only known in second step (in swap-iframe), derived from htlcScript
+                | 'witnessScript' // Only known in second step (in swap-iframe)
+                | 'type' // Must be 'htlc-redeem'
+            >,
+            output: BitcoinTransactionChangeOutput,
+        }
+    ),
+
+    // Data needed for display
+    fiatCurrency: string,
+    nimFiatRate: number,
+    btcFiatRate: number,
+    serviceFundingNetworkFee: number, // Luna or Sats, depending which one gets funded
+    serviceRedeemingNetworkFee: number, // Luna or Sats, depending which one gets redeemed
+    serviceExchangeFee: number, // Luna or Sats, depending which one gets funded
+    nimiqAddresses: Array<{
+        address: string,
+        balance: number, // Luna
+    }>,
+    bitcoinAccount: {
+        balance: number, // Sats
+    },
+};
+
+// Used in swap-iframe
+export type SignSwapTransactionsRequest = {
+    swapId: string,
+    fund: {
+        type: 'NIM'
+        htlcData: Uint8Array,
+    } | {
+        type: 'BTC',
+        htlcScript: Uint8Array,
+    },
+    redeem: {
+        type: 'NIM',
+        htlcData: Uint8Array,
+        htlcAddress: string,
+    } | {
+        type: 'BTC',
+        htlcScript: Uint8Array,
+        transactionHash: string,
+        outputIndex: number;
+    },
+};
+
 export type SignMessageRequest = SimpleRequest & {
     keyPath: string,
     message: Uint8Array | string,
@@ -208,9 +303,14 @@ export type RedirectRequest
     | SignTransactionRequest
     | SignBtcTransactionRequest
     | SimpleRequest
-    | DeriveBtcXPubRequest;
+    | DeriveBtcXPubRequest
+    | SignSwapRequest;
 
-export type IFrameRequest = EmptyRequest | DeriveAddressesRequest | ReleaseKeyRequest;
+export type IFrameRequest
+    = EmptyRequest
+    | DeriveAddressesRequest
+    | ReleaseKeyRequest
+    | SignSwapTransactionsRequest;
 
 export type Request = RedirectRequest | IFrameRequest;
 
@@ -244,6 +344,10 @@ export type SignedBitcoinTransaction = {
     transactionHash: string,
     raw: string,
 };
+export type SignSwapTransactionsResult = {
+    nim: SignatureResult,
+    btc: SignedBitcoinTransaction,
+};
 
 // Result unions
 
@@ -251,7 +355,8 @@ export type IFrameResult
     = DerivedAddress[]
     | ListLegacyResult
     | ListResult
-    | SimpleResult;
+    | SimpleResult
+    | SignSwapTransactionsResult;
 
 export type RedirectResult
     = DerivedAddress[]
@@ -274,6 +379,7 @@ export type ResultType<T extends RedirectRequest> =
     T extends Is<T, RemoveKeyRequest> | Is<T, SimpleRequest> ? SimpleResult :
     T extends Is<T, SignBtcTransactionRequest> ? SignedBitcoinTransaction :
     T extends Is<T, DeriveBtcXPubRequest> ? DeriveBtcXPubResult :
+    T extends Is<T, SignSwapRequest> ? SimpleResult :
     never;
 
 export type ResultByCommand<T extends KeyguardCommand> =
@@ -284,6 +390,7 @@ export type ResultByCommand<T extends KeyguardCommand> =
     T extends KeyguardCommand.REMOVE ? SimpleResult :
     T extends KeyguardCommand.SIGN_BTC_TRANSACTION ? SignedBitcoinTransaction :
     T extends KeyguardCommand.DERIVE_BTC_XPUB ? DeriveBtcXPubResult :
+    T extends KeyguardCommand.SIGN_SWAP ? SimpleResult :
     never;
 
 // Error constants

@@ -4,6 +4,7 @@ import {
     RequestBehavior,
     RedirectRequestBehavior,
     IFrameRequestBehavior,
+    SwapIFrameRequestBehavior,
 } from './RequestBehavior';
 
 import { KeyguardCommand } from './KeyguardCommand';
@@ -33,6 +34,9 @@ import {
     ResultByCommand,
     SignBtcTransactionRequest,
     DeriveBtcXPubRequest,
+    SignSwapRequest,
+    SignSwapTransactionsRequest,
+    SignSwapTransactionsResult,
 } from './PublicRequest';
 
 import Observable from './Observable';
@@ -130,6 +134,10 @@ export class KeyguardClient {
         this._redirectRequest<DeriveBtcXPubRequest>(KeyguardCommand.DERIVE_BTC_XPUB, request);
     }
 
+    public signSwap(request: SignSwapRequest) {
+        this._redirectRequest<SignSwapRequest>(KeyguardCommand.SIGN_SWAP, request);
+    }
+
     /* IFRAME REQUESTS */
 
     public async list(): Promise<ListResult> {
@@ -162,6 +170,13 @@ export class KeyguardClient {
         return this._iframeRequest<EmptyRequest, SimpleResult>(KeyguardCommand.MIGRATE_ACCOUNTS_TO_KEYS);
     }
 
+    public async signSwapTransactions(request: SignSwapTransactionsRequest): Promise<SignSwapTransactionsResult> {
+        return this._iframeRequest<SignSwapTransactionsRequest, SignSwapTransactionsResult>(
+            KeyguardCommand.SIGN_SWAP_TRANSACTIONS,
+            request,
+        );
+    }
+
     /* PRIVATE METHODS */
 
     private async _redirectRequest<T extends RedirectRequest>(
@@ -177,7 +192,12 @@ export class KeyguardClient {
         request?: T1,
     ): Promise<T2> {
         const args = request ? [request] : [];
-        return this._iframeBehavior.request(this._endpoint, command, args);
+
+        const behavior = command === KeyguardCommand.SIGN_SWAP_TRANSACTIONS
+            ? new SwapIFrameRequestBehavior()
+            : this._iframeBehavior;
+
+        return behavior.request(this._endpoint, command, args);
     }
 
     private _onReject(

@@ -51,8 +51,24 @@ type ParsedBitcoinTransactionInput = {
         value: number,
     },
     redeemScript?: Uint8Array,
+    witnessScript?: Uint8Array,
+    type: 'standard' | 'htlc-redeem' | 'htlc-refund',
     keyPath: string,
     address: string,
+};
+
+type NimHtlcContents = {
+    refundAddress: string,
+    redeemAddress: string,
+    hash: string,
+    timeoutBlockHeight: number,
+};
+
+type BtcHtlcContents = {
+    refundAddress: string,
+    redeemAddress: string,
+    hash: string,
+    timeoutTimestamp: number,
 };
 
 type Transform<T, K extends keyof T, E> = Omit<T, K> & E;
@@ -111,5 +127,70 @@ type Parsed<T extends KeyguardRequest.Request> =
                 KeyId2KeyInfo<KeyguardRequest.SignBtcTransactionRequestCheckout>,
                 'inputs', { inputs: ParsedBitcoinTransactionInput[] }
             >, 'shopLogoUrl', { shopLogoUrl?: URL }
+        > :
+    T extends Is<T, KeyguardRequest.SignSwapRequest> ?
+        Transform<
+            KeyId2KeyInfo<KeyguardRequest.SignSwapRequest>,
+            'fund' | 'redeem', {
+                fund: {
+                    type: 'NIM',
+                    keyPath: string,
+                    transaction: Nimiq.ExtendedTransaction,
+                    senderLabel: string,
+                } | {
+                    type: 'BTC',
+                    inputs: ParsedBitcoinTransactionInput[],
+                    recipientOutput: { // Cannot parse an output with most of it's required properties missing
+                        value: number,
+                    },
+                    changeOutput?: KeyguardRequest.BitcoinTransactionChangeOutput,
+                    refundKeyPath: string,
+                    refundAddress: string,
+                },
+                redeem: {
+                    type: 'NIM',
+                    keyPath: string,
+                    transaction: Nimiq.ExtendedTransaction,
+                    recipientLabel: string,
+                } | {
+                    type: 'BTC',
+                    input: { // Cannot parse an input with most of it's required properties missing
+                        witnessUtxo: {
+                            value: number,
+                        },
+                        keyPath: string,
+                    },
+                    output: KeyguardRequest.BitcoinTransactionChangeOutput,
+                },
+            }
+        > :
+    T extends Is<T, KeyguardRequest.SignSwapTransactionsRequest> ?
+        Transform<
+            KeyguardRequest.SignSwapTransactionsRequest,
+            'fund' | 'redeem', {
+                fund: {
+                    type: 'NIM',
+                    htlcDetails: NimHtlcContents,
+                    htlcData: Uint8Array,
+                } | {
+                    type: 'BTC',
+                    htlcDetails: BtcHtlcContents,
+                    htlcScript: Uint8Array,
+                    htlcAddress: string,
+                },
+                redeem: {
+                    type: 'NIM',
+                    htlcDetails: NimHtlcContents,
+                    htlcData: Uint8Array,
+                    htlcAddress: string,
+                } | {
+                    type: 'BTC',
+                    htlcDetails: BtcHtlcContents,
+                    htlcScript: Uint8Array,
+                    transactionHash: string,
+                    outputIndex: number,
+                    outputScript: Buffer,
+                },
+            }
         > :
     T;

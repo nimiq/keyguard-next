@@ -28,7 +28,7 @@ class Key {
      * @returns {Nimiq.PublicKey}
      */
     derivePublicKey(path) {
-        return Nimiq.PublicKey.derive(this._derivePrivateKey(path));
+        return Nimiq.PublicKey.derive(this.derivePrivateKey(path));
     }
 
     /**
@@ -45,7 +45,7 @@ class Key {
      * @returns {Nimiq.Signature}
      */
     sign(path, data) {
-        const privateKey = this._derivePrivateKey(path);
+        const privateKey = this.derivePrivateKey(path);
         const publicKey = Nimiq.PublicKey.derive(privateKey);
         return Nimiq.Signature.create(privateKey, publicKey, data);
     }
@@ -84,9 +84,8 @@ class Key {
     /**
      * @param {string} path
      * @returns {Nimiq.PrivateKey}
-     * @private
      */
-    _derivePrivateKey(path) {
+    derivePrivateKey(path) {
         return this._secret instanceof Nimiq.Entropy
             ? this._secret.toExtendedPrivateKey().derivePath(path).privateKey
             : this._secret;

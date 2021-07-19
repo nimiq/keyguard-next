@@ -1,11 +1,11 @@
+/* global BitcoinRequestParserMixin */
+/* global TopLevelApi */
 /* global Nimiq */
 /* global I18n */
-/* global BitcoinEnabledTopLevelApi */
 /* global SignBtcTransaction */
 /* global Errors */
 
-/** @extends {BitcoinEnabledTopLevelApi<KeyguardRequest.SignBtcTransactionRequest>} */
-class SignBtcTransactionApi extends BitcoinEnabledTopLevelApi {
+class SignBtcTransactionApi extends BitcoinRequestParserMixin(TopLevelApi) {
     /**
      * @param {KeyguardRequest.SignBtcTransactionRequest} request
      * @returns {Promise<Parsed<KeyguardRequest.SignBtcTransactionRequest>>}

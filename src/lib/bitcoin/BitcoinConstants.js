@@ -51,4 +51,5 @@ const BitcoinConstants = { // eslint-disable-line no-unused-vars
         MAIN: 'bc',
         TEST: 'tb',
     },
+    BIP84_ADDRESS_VERSION: 0,
 };

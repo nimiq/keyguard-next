@@ -133,6 +133,8 @@ class PaymentInfoLine { // eslint-disable-line no-unused-vars
         `;
         /* eslint-enable indent */
 
+        I18n.translateDom($tooltip);
+
         const formattedFiatAmount = NumberFormatting.formatCurrency(fiatAmount, fiatCurrency);
         $tooltip.querySelectorAll('.fiat-amount').forEach($fiatAmount => {
             $fiatAmount.textContent = formattedFiatAmount;

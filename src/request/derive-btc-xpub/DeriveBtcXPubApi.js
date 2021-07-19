@@ -1,10 +1,10 @@
+/* global BitcoinRequestParserMixin */
+/* global TopLevelApi */
 /* global Nimiq */
-/* global BitcoinEnabledTopLevelApi */
 /* global DeriveBtcXPub */
 /* global Errors */
 
-/** @extends {BitcoinEnabledTopLevelApi<KeyguardRequest.DeriveBtcXPubRequest>} */
-class DeriveBtcXPubApi extends BitcoinEnabledTopLevelApi { // eslint-disable-line no-unused-vars
+class DeriveBtcXPubApi extends BitcoinRequestParserMixin(TopLevelApi) { // eslint-disable-line no-unused-vars
     /**
      * @param {KeyguardRequest.DeriveBtcXPubRequest} request
      * @returns {Promise<Parsed<KeyguardRequest.DeriveBtcXPubRequest>>}

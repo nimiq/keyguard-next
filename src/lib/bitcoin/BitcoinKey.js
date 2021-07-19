@@ -23,27 +23,20 @@ class BitcoinKey {
     deriveAddress(path) {
         const keyPair = this.deriveKeyPair(path);
 
-        const bip = BitcoinUtils.parseBipFromDerivationPath(path);
+        /** @type {string | undefined} */
+        let address;
 
-        /** @type {BitcoinJSTypes.Payment} */
-        let payment;
-
-        switch (bip) {
-            case BitcoinConstants.BIP.BIP49:
-                payment = BitcoinUtils.keyPairToNestedSegwit(keyPair);
-                break;
-            case BitcoinConstants.BIP.BIP84:
-                payment = BitcoinUtils.keyPairToNativeSegwit(keyPair);
-                break;
-            default:
-                throw new Errors.KeyguardError(`Invalid BIP: ${bip}`);
+        switch (BitcoinUtils.parseBipFromDerivationPath(path)) {
+            case BitcoinConstants.BIP.BIP49: address = BitcoinUtils.keyPairToNestedSegwit(keyPair).address; break;
+            case BitcoinConstants.BIP.BIP84: address = BitcoinUtils.keyPairToNativeSegwit(keyPair).address; break;
+            default: break;
         }
 
-        if (!payment.address) {
+        if (!address) {
             throw new Errors.KeyguardError('UNEXPECTED: Failed to derive an address');
         }
 
-        return payment.address;
+        return address;
     }
 
     /**

@@ -11,10 +11,10 @@
           child-src 'self' blob:;
           style-src 'self';
           font-src 'self';
-          connect-src 'self' https://api.coingecko.com">
+          connect-src 'self'">
     <title>Nimiq Keyguard</title>
 
-    <script defer manual src="../../../node_modules/@nimiq/core-web/web-offline.js"></script>
+    <script defer manual src="../../../node_modules/@nimiq/core-web/web.js"></script>
     <script defer manual src="../../lib/Constants.js"></script>
     <script defer manual src="../../config/config.local.js"></script>
 
@@ -48,20 +48,13 @@
     <script defer bundle-bitcoin src="../../lib/bitcoin/BitcoinKey.js"></script>
     <script defer bundle-bitcoin src="../../lib/bitcoin/BitcoinRequestParserMixin.js"></script>
 
-    <script defer src="../../lib/ClipboardUtils.js"></script>
     <script defer src="../../lib/IqonHash.js"></script>
     <script defer src="../../lib/Iqons.js"></script>
     <script defer src="../../lib/LoginFileConfig.js"></script>
     <script defer src="../../lib/NumberFormatting.js"></script>
-    <script defer src="../../lib/FiatApi.js"></script>
-    <script defer src="../../lib/swap/HtlcUtils.js"></script>
-    <script defer src="../../components/Copyable.js"></script>
     <script defer src="../../components/Identicon.js"></script>
-    <script defer src="../../components/AddressInfo.js"></script>
-    <script defer src="../../components/Timer.js"></script>
-    <script defer src="../../components/PaymentInfoLine.js"></script>
-    <script defer src="SignBtcTransaction.js"></script>
-    <script defer src="SignBtcTransactionApi.js"></script>
+    <script defer src="SignSwap.js"></script>
+    <script defer src="SignSwapApi.js"></script>
     <script defer src="index.js"></script>
 
     <link rel="stylesheet" bundle-toplevel href="../../../node_modules/@nimiq/style/nimiq-style.min.css">
@@ -70,13 +63,8 @@
     <link rel="stylesheet" bundle-toplevel href="../../components/PasswordInput.css">
     <link rel="stylesheet" bundle-toplevel href="../../components/PasswordBox.css">
 
-    <link rel="stylesheet" href="../../components/Copyable.css">
-    <link rel="stylesheet" href="../../components/AddressInfo.css">
-    <link rel="stylesheet" href="../../components/AddressInfoDetailed.css">
     <link rel="stylesheet" href="../../components/Tooltip.css">
-    <link rel="stylesheet" href="../../components/Timer.css">
-    <link rel="stylesheet" href="../../components/PaymentInfoLine.css">
-    <link rel="stylesheet" href="SignBtcTransaction.css">
+    <link rel="stylesheet" href="SignSwap.css">
 </head>
 <body class="loading">
     <div class="header-top">
@@ -86,32 +74,61 @@
     </div>
 
     <div id="app">
-        <div id="confirm-transaction" class="page nq-card">
-            <div class="payment-info-line"></div>
+        <div id="confirm-swap" class="page nq-card">
             <div class="page-header nq-card-header">
-                <a tabindex="0" class="page-header-back-button hide-standard">
+                <a tabindex="0" class="page-header-back-button">
                     <svg class="nq-icon"><use xlink:href="../../../node_modules/@nimiq/style/nimiq-style.icons.svg#nq-arrow-left"/></svg>
                 </a>
-                <h1 data-i18n="sign-tx-heading-checkout" class="nq-h1 hide-standard hide-cashlink">Verify Payment</h1>
-                <h1 data-i18n="sign-tx-heading-tx" class="nq-h1 hide-checkout hide-cashlink">Confirm Transaction</h1>
+                <h1 data-i18n="sign-swap-heading" class="nq-h1">Confirm Swap</h1>
+                <div class="nq-notice">
+                    <div class="tooltip exchange-rate" tabindex="0">
+                        <div class="pill">
+                            <span id="exchange-rate"></span>
+                        </div>
+                        <div class="tooltip-box" data-i18n="sign-swap-exchange-rate-tooltip">This rate includes the swap fee.</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="page-body nq-card-body transaction">
-                <div class="recipient">
-                    <div class="label-line">
-                        <div id="avatar"></div>
-                        <div id="label"></div>
-                    </div>
-                    <span id="address"></span>
+            <div class="page-body nq-card-body">
+                <div class="center">
+
                 </div>
 
-                <div class="value-fee">
-                    <div class="total nq-light-blue">
-                        <span id="value"></span><span class="btc-symbol"></span>
+                <div class="address-infos columns">
+                    <div class="nimiq-address left-column">
+                        <div class="identicon"></div>
+                        <span class="label"></span>
                     </div>
+                    <div class="bitcoin-account right-column">
+                        <span class="label" data-i18n="bitcoin">Bitcoin</span>
+                        <div class="identicon">
+                            <img src="../../assets/icons/bitcoin.svg">
+                        </div>
+                    </div>
+                </div>
 
-                    <div class="fee-section nq-text-s display-none">
-                        + <span id="fee"></span> <span class="btc-symbol"></span> <span data-i18n="sign-tx-fee">fee</span>
+                <div class="balance-bar"></div>
+
+                <div class="swap-values columns">
+                    <div class="left-column">
+                        <span id="swap-nim-value"></span><span class="nim-symbol"></span><br>
+                        <span id="swap-nim-value-fiat" class="fiat"></span>
+                    </div>
+                    <div class="right-column">
+                        <span id="swap-btc-value"></span><span class="btc-symbol"></span><br>
+                        <span id="swap-btc-value-fiat" class="fiat"></span>
+                    </div>
+                </div>
+
+                <div class="new-balances columns">
+                    <div class="left-column">
+                        <span id="new-nim-balance"></span><span class="nim-symbol"></span><br>
+                        <span id="new-nim-balance-fiat" class="fiat"></span>
+                    </div>
+                    <div class="right-column">
+                        <span id="new-btc-balance"></span><span class="btc-symbol"></span><br>
+                        <span id="new-btc-balance-fiat" class="fiat"></span>
                     </div>
                 </div>
             </div>

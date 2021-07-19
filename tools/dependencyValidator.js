@@ -48,6 +48,9 @@ requests.forEach(/** @param {string} request */ request => {
     const scripts = funcs.findScripts(`src/request/${request}/index.html`);
     // console.log("scripts:", scripts);
 
+    const webJsIndex = scripts.indexOf('../../../node_modules/@nimiq/core-web/web.js');
+    if (webJsIndex > -1) scripts[webJsIndex] = '../../../node_modules/@nimiq/core-web/web-offline.js';
+
     // Find missing and unneeded scripts
     const unneededScripts = scripts.slice();
     const missingScripts = relativeDepsPaths.filter(depPath => {

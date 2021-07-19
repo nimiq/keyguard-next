@@ -1,10 +1,10 @@
-/* global BitcoinEnabledTopLevelApi */
+/* global BitcoinRequestParserMixin */
+/* global TopLevelApi */
 /* global ImportFile */
 /* global ImportWords */
 /* global Errors */
 
-/** @extends {BitcoinEnabledTopLevelApi<KeyguardRequest.ImportRequest>} */
-class ImportApi extends BitcoinEnabledTopLevelApi {
+class ImportApi extends BitcoinRequestParserMixin(TopLevelApi) {
     /**
      * @param {KeyguardRequest.ImportRequest | KeyguardRequest.ResetPasswordRequest} request
      * @returns {Promise<Parsed<KeyguardRequest.ImportRequest | KeyguardRequest.ResetPasswordRequest>>}

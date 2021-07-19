@@ -62,10 +62,12 @@ export class RedirectRequestBehavior extends RequestBehavior {
 }
 
 export class IFrameRequestBehavior extends RequestBehavior {
-    private static IFRAME_PATH_SUFFIX = '/request/iframe/';
-
     private _iframe: HTMLIFrameElement | null;
     private _client: PostMessageRpcClient | null;
+
+    protected get IFRAME_PATH_SUFFIX() {
+        return '/request/iframe/';
+    }
 
     constructor() {
         super(BehaviorType.IFRAME);
@@ -74,7 +76,7 @@ export class IFrameRequestBehavior extends RequestBehavior {
     }
 
     public async request(endpoint: string, command: KeyguardCommand, args: any[]): Promise<any> {
-        if (this._iframe && this._iframe.src !== `${endpoint}${IFrameRequestBehavior.IFRAME_PATH_SUFFIX}`) {
+        if (this._iframe && this._iframe.src !== `${endpoint}${this.IFRAME_PATH_SUFFIX}`) {
             throw new Error('Keyguard iframe is already opened with another endpoint');
         }
 
@@ -101,9 +103,15 @@ export class IFrameRequestBehavior extends RequestBehavior {
             $iframe.name = 'NimiqKeyguardIFrame';
             $iframe.style.display = 'none';
             document.body.appendChild($iframe);
-            $iframe.src = `${endpoint}${IFrameRequestBehavior.IFRAME_PATH_SUFFIX}`;
+            $iframe.src = `${endpoint}${this.IFRAME_PATH_SUFFIX}`;
             $iframe.onload = () => resolve($iframe);
             $iframe.onerror = reject;
         }) as Promise<HTMLIFrameElement>;
+    }
+}
+
+export class SwapIFrameRequestBehavior extends IFrameRequestBehavior {
+    protected get IFRAME_PATH_SUFFIX() {
+        return '/request/swap-iframe/';
     }
 }

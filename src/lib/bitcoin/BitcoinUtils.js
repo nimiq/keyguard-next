@@ -1,3 +1,5 @@
+/* global Nimiq */
+/* global Errors */
 /* global BitcoinConstants */
 /* global BitcoinJS */
 /* global CONFIG */
@@ -113,5 +115,35 @@ class BitcoinUtils { // eslint-disable-line no-unused-vars
      */
     static satoshisToCoins(satoshis) {
         return satoshis / BitcoinConstants.SATOSHIS_PER_COIN;
+    }
+
+    /**
+     * @param {string | Uint8Array | Buffer} bytes
+     * @param {'BIP49' | 'BIP84'} bip
+     * @returns {string}
+     */
+    static addressBytesToAddress(bytes, bip) {
+        if (typeof bytes === 'string') {
+            bytes = Nimiq.BufferUtils.fromAny(bytes);
+        }
+
+        if (bip === BitcoinConstants.BIP.BIP49) {
+            return BitcoinJS.address.toBase58Check(
+                // @ts-ignore Argument of type 'Uint8Array | Buffer' is not assignable to parameter of type 'Buffer'.
+                bytes,
+                BitcoinConstants.BIP49_ADDRESS_VERSIONS[CONFIG.BTC_NETWORK][1], // 0 => BIP44, 1 => BIP49
+            );
+        }
+
+        if (bip === BitcoinConstants.BIP.BIP84) {
+            return BitcoinJS.address.toBech32(
+                // @ts-ignore Argument of type 'Uint8Array | Buffer' is not assignable to parameter of type 'Buffer'.
+                bytes,
+                BitcoinConstants.BIP84_ADDRESS_VERSION,
+                BitcoinConstants.BIP84_ADDRESS_PREFIX[CONFIG.BTC_NETWORK],
+            );
+        }
+
+        throw new Errors.KeyguardError('TYPE ERROR: Invalid BIP');
     }
 }

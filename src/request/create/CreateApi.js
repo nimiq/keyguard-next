@@ -1,9 +1,9 @@
-/* global BitcoinEnabledTopLevelApi */
+/* global BitcoinRequestParserMixin */
+/* global TopLevelApi */
 /* global Create */
 /* global Errors */
 
-/** @extends {BitcoinEnabledTopLevelApi<KeyguardRequest.CreateRequest>} */
-class CreateApi extends BitcoinEnabledTopLevelApi { // eslint-disable-line no-unused-vars
+class CreateApi extends BitcoinRequestParserMixin(TopLevelApi) { // eslint-disable-line no-unused-vars
     /**
      * @param {KeyguardRequest.CreateRequest} request
      * @returns {Promise<KeyguardRequest.CreateRequest>}

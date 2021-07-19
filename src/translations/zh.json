@@ -85,6 +85,7 @@
     "passwordbox-confirm-log-in": "登录",
     "passwordbox-show-words": "显示助记词",
     "passwordbox-sign-msg": "签署信息",
+    "passwordbox-confirm-swap": "确认交换",
     "passwordbox-password-strength-short": "输入8个字符或更多",
     "passwordbox-password-strength-weak": "密码强度低",
     "passwordbox-password-strength-good": "密码强度中",
@@ -210,8 +211,22 @@
     "login-file-filename": "Nimiq-登录-文件-{accountLabel}.png",
     "login-file-default-account-label": "{color}帐户",
 
+    "bitcoin": "比特币",
     "bitcoin-recipient-unlabelled": "未标签",
 
     "derive-btc-xpub-heading": "添加比特币\n到您的帐户",
-    "derive-btc-xpub-text": "在超级高性能的支付硬币：NIM，与加密的黄金标准：比特币之间轻松交换。"
+    "derive-btc-xpub-text": "在超级高性能的支付硬币：NIM，与加密的黄金标准：比特币之间轻松交换。",
+
+    "sign-swap-heading": "确认交换",
+    "sign-swap-exchange-rate-tooltip": "此价格包括交换费用",
+    "sign-swap-fees": "费用",
+    "sign-swap-btc-fees": "BTC网络费",
+    "sign-swap-btc-fees-explainer": "原子交换需要进行两次比特币交易",
+    "sign-swap-oasis-fees": "OASIS服务费",
+    "sign-swap-oasis-fees-explainer": "交换价值",
+    "sign-swap-nim-fees": "NIM网络费",
+    "sign-swap-exchange-fee": "交换费用",
+    "sign-swap-of-exchange-value": "交换价值",
+    "sign-swap-total-fees": "总费用",
+    "sign-swap-your-bank": "您的银行"
 }

@@ -56,17 +56,23 @@ async function loadNimiq() {
 }
 
 /**
+ * @typedef {{loadNimiq: boolean, whitelist: string[]}} Options
+ */
+
+/**
  * @template {KeyguardRequest.RedirectRequest} T
  * @param {Newable} RequestApiClass - Class object of the API which is to be exposed via RPC
- * @param {object} [options]
+ * @param {Partial<Options>} [opts]
  */
-async function runKeyguard(RequestApiClass, options) { // eslint-disable-line no-unused-vars
+async function runKeyguard(RequestApiClass, opts) { // eslint-disable-line no-unused-vars
+    /** @type {Options} */
     const defaultOptions = {
         loadNimiq: true,
         whitelist: ['request'],
     };
 
-    options = Object.assign(defaultOptions, options);
+    /** @type {Options} */
+    const options = Object.assign(defaultOptions, opts);
 
     if (options.loadNimiq) {
         await loadNimiq();

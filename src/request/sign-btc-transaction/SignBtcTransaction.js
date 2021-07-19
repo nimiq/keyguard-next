@@ -2,7 +2,6 @@
 /* global KeyStore */
 /* global SignBtcTransactionApi */
 /* global PasswordBox */
-/* global SignBtcTransactionApi */
 /* global Errors */
 /* global Utf8Tools */
 /* global TopLevelApi */
@@ -12,6 +11,7 @@
 /* global BitcoinConstants */
 /* global BitcoinUtils */
 /* global BitcoinKey */
+/* global HtlcUtils */
 /* global IqonHash */
 /* global LoginFileConfig */
 /* global I18n */
@@ -158,65 +158,69 @@ class SignBtcTransaction {
 
         const btcKey = new BitcoinKey(key);
 
-        // For BIP49 (nested SegWit) inputs, a redeemScript needs to be added to inputs
-        for (const input of request.inputs) {
-            if (BitcoinUtils.parseBipFromDerivationPath(input.keyPath) !== BitcoinConstants.BIP.BIP49) continue;
-
-            // Add redeemScripts for BIP49 inputs
-            const keyPair = btcKey.deriveKeyPair(input.keyPath);
-            const output = BitcoinUtils.keyPairToNativeSegwit(keyPair).output;
-            if (!output) {
-                TopLevelApi.setLoading(false);
-                alert('UNEXPECTED: Failed to get native SegWit output for redeemScript');
-                return;
-            }
-            input.redeemScript = output;
-        }
-
-        // Sort inputs by tx hash ASC, then index ASC
-        request.inputs.sort((a, b) => {
-            if (a.hash !== b.hash) return a.hash < b.hash ? -1 : 1;
-            return a.index - b.index;
-        });
-
-        // Construct outputs
-        const outputs = [request.recipientOutput];
-
-        // Validate and add change output
-        if (request.changeOutput) {
-            // Derive address
-            const keyPair = btcKey.deriveKeyPair(request.changeOutput.keyPath);
-            /** @type {string | undefined} */
-            let address;
-            switch (BitcoinUtils.parseBipFromDerivationPath(request.changeOutput.keyPath)) {
-                case BitcoinConstants.BIP.BIP49: address = BitcoinUtils.keyPairToNestedSegwit(keyPair).address; break;
-                case BitcoinConstants.BIP.BIP84: address = BitcoinUtils.keyPairToNativeSegwit(keyPair).address; break;
-                default: throw new Errors.KeyguardError('UNEXPECTED: change output key path was not a supported BIP');
-            }
-
-            if (!address) {
-                throw new Errors.InvalidRequestError('Could not derive address for change output');
-            }
-
-            if (request.changeOutput.address && request.changeOutput.address !== address) {
-                throw new Errors.InvalidRequestError(
-                    'Given address is different from derived address for change output',
-                );
-            }
-
-            /** @type {KeyguardRequest.BitcoinTransactionOutput} */
-            const output = {
-                address,
-                value: request.changeOutput.value,
-            };
-
-            outputs.push(output);
-        }
-
-        // Sort outputs by value ASC, then address ASC
-        outputs.sort((a, b) => (a.value - b.value) || (a.address < b.address ? -1 : 1));
-
         try {
+            // For BIP49 (nested SegWit) inputs, a redeemScript needs to be added to inputs
+            for (const input of request.inputs) {
+                if (BitcoinUtils.parseBipFromDerivationPath(input.keyPath) !== BitcoinConstants.BIP.BIP49) continue;
+
+                // Add redeemScripts for BIP49 inputs
+                const keyPair = btcKey.deriveKeyPair(input.keyPath);
+                const output = BitcoinUtils.keyPairToNativeSegwit(keyPair).output;
+                if (!output) {
+                    throw new Error('UNEXPECTED: Failed to get native SegWit output for redeemScript');
+                }
+                input.redeemScript = output;
+            }
+
+            // Sort inputs by tx hash ASC, then index ASC
+            request.inputs.sort((a, b) => {
+                if (a.hash !== b.hash) return a.hash < b.hash ? -1 : 1;
+                return a.index - b.index;
+            });
+
+            // Construct outputs
+            const outputs = [request.recipientOutput];
+
+            // Validate and add change output
+            if (request.changeOutput) {
+                // Derive address
+                const keyPair = btcKey.deriveKeyPair(request.changeOutput.keyPath);
+                /** @type {string | undefined} */
+                let address;
+                switch (BitcoinUtils.parseBipFromDerivationPath(request.changeOutput.keyPath)) {
+                    case BitcoinConstants.BIP.BIP49:
+                        address = BitcoinUtils.keyPairToNestedSegwit(keyPair).address;
+                        break;
+                    case BitcoinConstants.BIP.BIP84:
+                        address = BitcoinUtils.keyPairToNativeSegwit(keyPair).address;
+                        break;
+                    default:
+                        throw new Errors.KeyguardError('UNEXPECTED: change output key path was not a supported BIP');
+                }
+
+                if (!address) {
+                    throw new Errors.InvalidRequestError('Could not derive address for change output');
+                }
+
+                if (request.changeOutput.address && request.changeOutput.address !== address) {
+                    throw new Errors.InvalidRequestError(
+                        'Given address is different from derived address for change output',
+                    );
+                }
+
+                /** @type {KeyguardRequest.BitcoinTransactionOutput} */
+                const output = {
+                    address,
+                    value: request.changeOutput.value,
+                };
+
+                outputs.push(output);
+            }
+
+            // Sort outputs by value ASC, then address ASC
+            outputs.sort((a, b) => (a.value - b.value) || (a.address < b.address ? -1 : 1));
+
+
             // Construct transaction
             const psbt = new BitcoinJS.Psbt({ network: BitcoinUtils.Network });
 
@@ -226,17 +230,67 @@ class SignBtcTransaction {
             // Add outputs
             psbt.addOutputs(outputs);
 
+            if (request.inputs.length === 1 && request.inputs[0].type === 'htlc-refund') {
+                psbt.locktime = HtlcUtils.decodeBtcHtlcScript(request.inputs[0].witnessScript).timeoutTimestamp + 1;
+                psbt.setInputSequence(0, 0xfffffffe); // Signal to use locktime, but do not opt into replace-by-fee
+            }
+
             // Sign
             const paths = request.inputs.map(input => input.keyPath);
             btcKey.sign(paths, psbt);
 
             // Verify that all inputs are signed
             if (!psbt.validateSignaturesOfAllInputs()) {
-                throw new Error('Invalid or missing signature(s).');
+                throw new Error('Invalid or missing signature(s) for BTC transaction.');
             }
 
             // Finalize
-            psbt.finalizeAllInputs();
+            let i = 0;
+            for (const parsedInput of request.inputs) {
+                switch (parsedInput.type) {
+                    case 'standard':
+                        psbt.finalizeInput(i);
+                        break;
+                    case 'htlc-redeem':
+                    case 'htlc-refund':
+                        // eslint-disable-next-line no-loop-func
+                        psbt.finalizeInput(i, (inputIndex, input /* , script, isSegwit, isP2SH, isP2WSH */) => {
+                            if (!input.partialSig) {
+                                throw new Errors.KeyguardError('UNEXPECTED: Input does not have a partial signature');
+                            }
+
+                            if (!input.witnessScript) {
+                                throw new Errors.KeyguardError('UNEXPECTED: Input does not have a witnessScript');
+                            }
+
+                            const witnessBytes = BitcoinJS.script.fromASM([
+                                input.partialSig[0].signature.toString('hex'),
+                                input.partialSig[0].pubkey.toString('hex'),
+                                ...(parsedInput.type === 'htlc-redeem' ? [
+                                    // Use zero-bytes as a dummy secret, required for signing
+                                    '0000000000000000000000000000000000000000000000000000000000000000',
+                                    'OP_1', // OP_1 (true) activates the redeem branch in the HTLC script
+                                ] : []),
+                                ...(parsedInput.type === 'htlc-refund' ? [
+                                    'OP_0', // OP_0 (false) activates the refund branch in the HTLC script
+                                ] : []),
+                                input.witnessScript.toString('hex'),
+                            ].join(' '));
+
+                            const witnessStack = BitcoinJS.script.toStack(witnessBytes);
+
+                            return {
+                                finalScriptSig: undefined,
+                                finalScriptWitness: HtlcUtils.witnessStackToScriptWitness(witnessStack),
+                            };
+                        });
+                        break;
+                    default:
+                        throw new Errors.KeyguardError('Unsupported input type');
+                }
+
+                i += 1;
+            }
 
             // Extract tx
             const tx = psbt.extractTransaction();
@@ -251,7 +305,6 @@ class SignBtcTransaction {
             TopLevelApi.setLoading(false);
             console.error(error);
             alert(`ERROR: ${error.message}`);
-            // return;
         }
     }
 

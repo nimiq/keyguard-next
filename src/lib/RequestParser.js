@@ -57,18 +57,19 @@ class RequestParser { // eslint-disable-line no-unused-vars
     /**
      * @param {any} label
      * @param {boolean} [allowEmpty = true]
+     * @param {string} [parameterName = 'Label']
      * @returns {string | undefined}
      */
-    parseLabel(label, allowEmpty = true) {
+    parseLabel(label, allowEmpty = true, parameterName = 'Label') {
         if (!label) {
-            if (!allowEmpty) throw new Errors.InvalidRequestError('Label must not be empty');
+            if (!allowEmpty) throw new Errors.InvalidRequestError(`${parameterName} must not be empty`);
             return undefined;
         }
         if (typeof label !== 'string') {
-            throw new Errors.InvalidRequestError('Label must be a string');
+            throw new Errors.InvalidRequestError(`${parameterName} must be a string`);
         }
         if (Utf8Tools.stringToUtf8ByteArray(label).byteLength > 63) {
-            throw new Errors.InvalidRequestError('Label must not exceed 63 bytes');
+            throw new Errors.InvalidRequestError(`${parameterName} must not exceed 63 bytes`);
         }
         // eslint-disable-next-line no-control-regex
         if (/[\x00-\x1F\x7F]/.test(label)) {
@@ -140,7 +141,7 @@ class RequestParser { // eslint-disable-line no-unused-vars
         const recipient = this.parseAddress(object.recipient, 'recipient');
         const recipientType = object.recipientType || Nimiq.Account.Type.BASIC;
         if (!accountTypes.has(recipientType)) {
-            throw new Errors.InvalidRequestError('Invalid sender type');
+            throw new Errors.InvalidRequestError('Invalid recipient type');
         }
 
         if (sender.equals(recipient)) {
@@ -165,6 +166,12 @@ class RequestParser { // eslint-disable-line no-unused-vars
                 'Contract creation data must be 78 bytes for HTLC and 24, 36, or 44 bytes for vesting contracts',
             );
         }
+        if (flags === Nimiq.Transaction.Flag.CONTRACT_CREATION && recipient !== Nimiq.Address.CONTRACT_CREATION) {
+            throw new Errors.InvalidRequestError(
+                'Transaction recipient must be CONTRACT_CREATION when creating contracts',
+            );
+        }
+
         try {
             return new Nimiq.ExtendedTransaction(
                 sender,
@@ -188,9 +195,15 @@ class RequestParser { // eslint-disable-line no-unused-vars
      * @returns {Nimiq.Address}
      */
     parseAddress(address, name) {
+        if (address === 'CONTRACT_CREATION') {
+            return Nimiq.Address.CONTRACT_CREATION;
+        }
+
         try {
-            const nqAddress = new Nimiq.Address(address);
-            return nqAddress;
+            if (typeof address === 'string') {
+                return Nimiq.Address.fromString(address);
+            }
+            return new Nimiq.Address(address);
         } catch (error) {
             throw new Errors.InvalidRequestError(`${name} must be a valid Nimiq address (${error.message})`);
         }
@@ -274,12 +287,30 @@ class RequestParser { // eslint-disable-line no-unused-vars
     }
 
     /**
+     * @param {unknown} int
+     * @param {boolean} [allowZero=true]
+     * @param {string} [parameterName='Value']
+     * @returns {number}
+     */
+    parsePositiveInteger(int, allowZero = true, parameterName = 'Value') {
+        const value = /** @type {number} */ (this.parseNonNegativeFiniteNumber(int, false, parameterName));
+        if (value === 0 && !allowZero) {
+            throw new Errors.InvalidRequestError(`${parameterName} must not be 0`);
+        }
+        if (Math.round(value) !== value) {
+            throw new Errors.InvalidRequestError(`${parameterName} must be a whole number (integer)`);
+        }
+        return value;
+    }
+
+    /**
      * Parses that a currency info is valid.
      * @param {unknown} fiatCurrency
+     * @param {boolean} [allowUndefined=true]
      * @returns {string | undefined}
      */
-    parseFiatCurrency(fiatCurrency) {
-        if (fiatCurrency === undefined) {
+    parseFiatCurrency(fiatCurrency, allowUndefined = true) {
+        if (fiatCurrency === undefined && allowUndefined) {
             return undefined;
         }
 

@@ -1,0 +1,45 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta http-equiv="Content-Security-Policy"
+              content="default-src 'self' 'unsafe-eval';
+              img-src http: https: blob: data:;
+              child-src 'self' blob:;
+              style-src 'self';
+              font-src 'self';">
+
+        <script defer manual src="../../../node_modules/@nimiq/core-web/web.js"></script>
+        <script defer manual src="../../lib/Constants.js"></script>
+        <script defer manual src="../../config/config.local.js"></script>
+
+        <script defer bundle-common src="../../lib/JsonUtils.js"></script>
+        <script defer bundle-common src="../../lib/RpcServer.es.js"></script>
+        <script defer bundle-common src="../../lib/KeyStore.js"></script>
+        <script defer bundle-common src="../../lib/Key.js"></script>
+        <script defer bundle-common src="../../lib/KeyInfo.js"></script>
+        <script defer bundle-common src="../../lib/Errors.js"></script>
+        <script defer bundle-common src="../../lib/ErrorConstants.js"></script>
+        <script defer bundle-common src="../../lib/SignMessageConstants.js"></script>
+        <script defer bundle-common src="../../lib/CookieJar.js"></script>
+        <script defer bundle-common src="../../lib/BrowserDetection.js"></script>
+        <script defer bundle-common src="../../lib/AccountStore.js"></script>
+        <script defer bundle-common src="../../common.js"></script>
+
+        <script defer bundle-bitcoin src="../../lib/bitcoin/BitcoinJS.js"></script>
+        <script defer bundle-bitcoin src="../../lib/bitcoin/BitcoinConstants.js"></script>
+        <script defer bundle-bitcoin src="../../lib/bitcoin/BitcoinUtils.js"></script>
+        <script defer bundle-bitcoin src="../../lib/bitcoin/BitcoinRequestParserMixin.js"></script>
+
+        <script defer src="../../lib/RequestParser.js"></script>
+        <script defer src="../../lib/swap/HtlcUtils.js"></script>
+        <script defer src="../../lib/Utf8Tools.js"></script>
+
+        <script defer src="SwapIFrameApi.js"></script>
+        <script defer src="index.js"></script>
+    </head>
+    <body>
+        <h1>Nimiq Keyguard</h1>
+    </body>
+</html>
