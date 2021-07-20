@@ -1,6 +1,7 @@
 /* global Nimiq */
 /* global I18n */
 /* global TemplateTags */
+/* global BrowserDetection */
 
 class PasswordInput extends Nimiq.Observable {
     /**
@@ -26,6 +27,13 @@ class PasswordInput extends Nimiq.Observable {
 
         this._onInputChanged();
         this.$input.addEventListener('input', () => this._onInputChanged());
+
+        // Scroll parent into view on mobile devices (except iOS) when input is focused and on 'input'
+        // to prevent the submit button from being (partially) hidden behind the virtual keyboard
+        if (BrowserDetection.isMobile() && BrowserDetection.isTouchDevice() && !BrowserDetection.isIOS()) {
+            this.$input.addEventListener('focus', () => setTimeout(() => this.scrollParentIntoView(), 700));
+            this.$input.addEventListener('input', () => this.scrollParentIntoView());
+        }
     }
 
     /**
@@ -107,6 +115,17 @@ class PasswordInput extends Nimiq.Observable {
      */
     setMinLength(minLength) {
         this._minLength = minLength || PasswordInput.DEFAULT_MIN_LENGTH;
+    }
+
+    scrollParentIntoView() {
+        const $parent = this.$el.parentElement;
+
+        if (!$parent) return;
+
+        $parent.scrollIntoView({
+            behavior: 'smooth',
+            block: 'end',
+        });
     }
 }
 
