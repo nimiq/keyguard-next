@@ -43,4 +43,20 @@ class BrowserDetection { // eslint-disable-line no-unused-vars
         const version = this.iOSVersion();
         return version[0] < 11 || (version[0] === 11 && version[1] === 2); // Only 11.2 has the WASM bug
     }
+
+    /**
+     * @returns {boolean}
+     */
+    static isMobile() {
+        return window.matchMedia('only screen and (max-width: 760px)').matches;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    static isTouchDevice() {
+        return (('ontouchstart' in window)
+            || (navigator.maxTouchPoints > 0)
+            || (navigator.msMaxTouchPoints > 0));
+    }
 }
