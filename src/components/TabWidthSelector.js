@@ -12,7 +12,13 @@ class TabWidthSelector extends Nimiq.Observable {
         this.$el = TabWidthSelector._createElement($el);
 
         // Load last used width from localStorage.
-        this._tabWidth = localStorage.getItem(TabWidthSelector.LOCALSTORAGE_KEY) || TabWidthSelector.DEFAULT_TAB_WIDTH;
+        try {
+            /** @type {string} */
+            this._tabWidth = localStorage.getItem(TabWidthSelector.LOCALSTORAGE_KEY) || '';
+        } catch (error) {
+            // Ignore
+        }
+        this._tabWidth = this._tabWidth || TabWidthSelector.DEFAULT_TAB_WIDTH;
         this._updateClasses();
 
         this.$width2Button = /** @type {HTMLButtonElement} */ (this.$el.querySelector('button[data-width="2"]'));
@@ -67,7 +73,11 @@ class TabWidthSelector extends Nimiq.Observable {
     _updateWidth(width) {
         this._tabWidth = width;
         this._updateClasses();
-        localStorage.setItem(TabWidthSelector.LOCALSTORAGE_KEY, this._tabWidth);
+        try {
+            localStorage.setItem(TabWidthSelector.LOCALSTORAGE_KEY, this._tabWidth);
+        } catch (error) {
+            // Ignore
+        }
         this.fire(TabWidthSelector.Events.INPUT, this._tabWidth);
     }
 

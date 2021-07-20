@@ -54,6 +54,15 @@ Errors.KeyguardError = class extends Errors.BaseError {
     }
 };
 
+Errors.BrowserError = class extends Errors.BaseError {
+    /**
+     *  @param {string|Error} [messageOrError]
+     */
+    constructor(messageOrError) {
+        super(ErrorConstants.Types.BROWSER, messageOrError);
+    }
+};
+
 Errors.UnclassifiedError = class extends Errors.BaseError {
     /**
      *  @param {string|Error} [messageOrError]

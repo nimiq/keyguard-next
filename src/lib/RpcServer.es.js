@@ -250,11 +250,15 @@ class RpcServer { // eslint-disable-line no-unused-vars
         // Check for a stored request referenced by a URL 'id' parameter
         const searchParams = new URLSearchParams(window.location.search);
         if (searchParams.has(UrlRpcEncoder.URL_SEARCHPARAM_NAME)) {
-            const storedRequest = window.sessionStorage.getItem(
-                `request-${searchParams.get(UrlRpcEncoder.URL_SEARCHPARAM_NAME)}`,
-            );
-            if (storedRequest) {
-                return this._receive(JsonUtils.parse(storedRequest), false);
+            try {
+                const storedRequest = window.sessionStorage.getItem(
+                    `request-${searchParams.get(UrlRpcEncoder.URL_SEARCHPARAM_NAME)}`,
+                );
+                if (storedRequest) {
+                    return this._receive(JsonUtils.parse(storedRequest), false);
+                }
+            } catch (error) {
+                // Ignore SessionStorage access error
             }
         }
 
@@ -292,7 +296,11 @@ class RpcServer { // eslint-disable-line no-unused-vars
             console.debug('RpcServer ACCEPT', state.data);
 
             if (persistMessage) {
-                sessionStorage.setItem(`request-${state.data.id}`, JsonUtils.stringify(state.toRequestObject()));
+                try {
+                    sessionStorage.setItem(`request-${state.data.id}`, JsonUtils.stringify(state.toRequestObject()));
+                } catch (error) {
+                    // Ignore SessionStorage access error
+                }
             }
 
             // Call method

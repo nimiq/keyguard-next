@@ -296,6 +296,8 @@ export type KeyguardError = {
         CORE: 'Core',
         // used for internal keyguard Errors.
         KEYGUARD: 'Keyguard',
+        // used for errors caused by the browser and its configuration
+        BROWSER: 'Browser',
         // used for the remaining Errors which are not assigned an own type just yet.
         UNCLASSIFIED: 'Unclassified',
     },
@@ -312,5 +314,7 @@ export type KeyguardError = {
         KEY_NOT_FOUND: 'keyId not found',
         // network name does not exist
         INVALID_NETWORK_CONFIG: 'Invalid network config',
+        // when the browser prevents access to LocalStorage or SessionStorage (because of privacy settings)
+        NO_STORAGE_ACCESS: 'Cannot access browser storage because of privacy settings',
     },
 };
