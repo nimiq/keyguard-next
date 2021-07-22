@@ -105,8 +105,8 @@ class QrScanner {
         }
 
         try {
-            // @ts-ignore Cannot find name 'ImageCapture'
-            const imageCapture = new ImageCapture(track);
+            // @ts-ignore Property 'ImageCapture' does not exist on type 'Window & typeof globalThis'
+            const imageCapture = new window.ImageCapture(track);
             const result = await imageCapture.getPhotoCapabilities();
             return result.fillLightMode.includes('flash');
         } catch (error) {
@@ -282,16 +282,17 @@ class QrScanner {
             return new Promise((resolve, reject) => {
                 /** @type {any} */ // TODO: BarcodeDetector
                 const decoder = engine;
-
                 const timeout = window.setTimeout(() => reject('Scanner error: timeout'), 10000);
+
                 /** @param {string[]} scanResults */
-                decoder.detect(canvas).then(/** @param {{rawValue: string}[]} scanResults */ scanResults => {
-                    if (!scanResults.length) {
-                        reject(QrScanner.NO_QR_CODE_FOUND);
-                    } else {
-                        resolve(scanResults[0].rawValue);
-                    }
-                })
+                decoder.detect(canvas)
+                    .then(/** @param {{rawValue: string}[]} scanResults */ scanResults => {
+                        if (!scanResults.length) {
+                            reject(QrScanner.NO_QR_CODE_FOUND);
+                        } else {
+                            resolve(scanResults[0].rawValue);
+                        }
+                    })
                     .catch(/** @param {string | Error} e */ e => {
                         reject(`Scanner error: ${e instanceof Error ? e.message : e}`);
                     })
@@ -319,7 +320,6 @@ class QrScanner {
     }
 
     /**
-     *
      * @param {string} [workerPath]
      * @returns {Promise<Worker>} // TODO: Or BarcodeDetector
      */
@@ -447,7 +447,6 @@ class QrScanner {
     }
 
     /**
-     *
      * @param {MediaTrackConstraints[]} constraintsToTry
      * @returns {Promise<MediaStream>}
      */
